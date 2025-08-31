@@ -1,0 +1,114 @@
+import React, { useState, useCallback } from "react";
+import { AppState } from "./types";
+import LandingPage from "./components/LandingPage";
+import SetupQuestions from "./components/SetupQuestions";
+import SectionSelection from "./components/SectionSelection";
+import ContentInput from "./components/ContentInput";
+import Preview from "./components/Preview";
+import Header from "./components/Header";
+import AuthCallback from "./components/AuthCallback"; // New import
+import SelectRepo from "./components/SelectRepo";     // New import
+
+const getInitialStep = (): AppState['currentStep'] => {
+  if (window.location.pathname === '/auth/callback') {
+    return 'authCallback';
+  }
+  return 'landing';
+};
+
+const initialState: AppState = {
+  currentStep: getInitialStep(),
+  repositoryInput: {
+    method: "url",
+    repoUrl: "",
+    owner: "",
+    repoName: "",
+  },
+  repositoryMetadata: null,
+  projectType: "Template",
+  teamContext: "Solo",
+  selectedSections: [],
+  sectionContent: {},
+  generatedContent: "",
+  isLoading: false,
+  error: null,
+  github_access_token: null, // Initialize new field
+};
+
+function App() {
+  const [appState, setAppState] = useState<AppState>(initialState);
+
+  const updateAppState = useCallback((updates: Partial<AppState>) => {
+    setAppState((prev) => ({ ...prev, ...updates }));
+  }, []);
+
+  const goToStep = useCallback(
+    (step: "landing" | "setup" | "sections" | "content" | "preview" | "authCallback" | "selectRepo") => {
+      updateAppState({ currentStep: step });
+    },
+    [updateAppState]
+  );
+
+  const resetApp = useCallback(() => {
+    setAppState(initialState);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <main className="container mx-auto px-4 py-8 max-w-6xl">
+        {appState.currentStep === "landing" && (
+          <LandingPage
+            appState={appState}
+            updateAppState={updateAppState}
+            goToStep={goToStep}
+          />
+        )}
+        {appState.currentStep === "authCallback" && (
+          <AuthCallback
+            updateAppState={updateAppState}
+            goToStep={goToStep}
+          />
+        )}
+        {appState.currentStep === "selectRepo" && (
+          <SelectRepo
+            appState={appState}
+            updateAppState={updateAppState}
+            goToStep={goToStep}
+          />
+        )}
+        {appState.currentStep === "setup" && (
+          <SetupQuestions
+            appState={appState}
+            updateAppState={updateAppState}
+            goToStep={goToStep}
+          />
+        )}
+        {appState.currentStep === "sections" && (
+          <SectionSelection
+            appState={appState}
+            updateAppState={updateAppState}
+            goToStep={goToStep}
+          />
+        )}
+        {appState.currentStep === "content" && (
+          <ContentInput
+            appState={appState}
+            updateAppState={updateAppState}
+            goToStep={goToStep}
+          />
+        )}
+        {appState.currentStep === "preview" && (
+          <Preview
+            appState={appState}
+            updateAppState={updateAppState}
+            goToStep={goToStep}
+            resetApp={resetApp}
+          />
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default App;
