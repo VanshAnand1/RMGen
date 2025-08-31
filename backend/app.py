@@ -100,6 +100,17 @@ def detect_project_type(metadata):
             g = Github()
         
         repo = g.get_repo(f"{metadata['owner']}/{metadata['repo_name']}")
+
+        # Check for keywords in name, description, and topics
+        topics = repo.get_topics()
+        description = repo.description.lower() if repo.description else ''
+        name = repo.name.lower()
+        
+        web_keywords = ['blog', 'website', 'portfolio', 'http', 'server', 'api', 'frontend', 'backend', 'webapp', 'web-app']
+        if any(key in topics for key in web_keywords) or \
+           any(key in description for key in web_keywords) or \
+           any(key in name for key in web_keywords):
+            return 'Web Application'
         
         if repo.is_template:
             return 'Template'
@@ -186,34 +197,46 @@ def generate_readme():
         section_content = data.get('section_content', {})
         repo_metadata = data.get('repo_metadata', {})
         
-        # Construct the comprehensive prompt for Gemini
+        # Build project context conditionally
+        context_lines = [
+            f"- Project Type: {project_type}",
+            f"- Team Context: {team_context} (use \"I\" for Solo, \"We\" for Team)"
+        ]
+        if repo_metadata:
+            context_lines.append(f"- Repository: {repo_metadata.get('name', 'Unknown')}")
+            context_lines.append(f"- Description: {repo_metadata.get('description', 'No description provided')}")
+            context_lines.append(f"- Primary Language: {repo_metadata.get('language', 'Unknown')}")
+
+        if 'License' in selected_sections and repo_metadata.get('license'):
+            context_lines.append(f"- License: {repo_metadata.get('license')}")
+
+        project_context_str = "\n".join(context_lines)
+
         prompt = f"""
-        You are an expert technical writer tasked with creating a professional README.md file for a GitHub repository.
-        
-        Project Context:
-        - Project Type: {project_type}
-        - Team Context: {team_context} (use "I" for Solo, "We" for Team)
-        - Repository: {repo_metadata.get('name', 'Unknown')}
-        - Description: {repo_metadata.get('description', 'No description provided')}
-        - Primary Language: {repo_metadata.get('language', 'Unknown')}
-        - License: {repo_metadata.get('license', 'MIT')}
-        
-        Selected Sections to Include: {', '.join(selected_sections)}
-        
-        User-Provided Content for Each Section:
+        You are an expert technical writer creating a README.md file. Your task is to generate content ONLY for the sections specified by the user.
+
+        **CRITICAL INSTRUCTIONS:**
+        1.  You MUST ONLY generate the sections listed here: {', '.join(selected_sections)}.
+        2.  Do NOT invent or add any sections that are not in that list.
+        3.  If the user has provided content for a section, use it as the primary source and enhance it.
+        4.  If the user has NOT provided content, generate it based on the project context below.
+        5.  When generating a project tagline or overview, be creative and do not simply repeat the project name.
+        6.  Generate the output as a single, complete README.md file in Markdown format.
+
+        **Formatting Rules:**
+        -   All section headers (e.g., `## My Header`) must be in Title Case.
+        -   Do NOT leave a blank line between a section header and the content that follows it.
+
+        ---
+        **Project Context:**
+        {project_context_str}
+
+        ---
+        **User-Provided Content for Each Section:**
         {json.dumps(section_content, indent=2)}
-        
-        Requirements:
-        1. Generate a complete, professional README.md in Markdown format
-        2. Use proper Markdown syntax (headers, lists, code blocks, bold, italic)
-        3. Maintain consistent pronoun usage based on team context
-        4. Include a table of contents if multiple sections are selected
-        5. Make the content engaging and informative
-        6. Follow GitHub README best practices
-        7. If user provided content for a section, use it as a starting point and enhance it
-        8. If no user content for a section, generate appropriate content based on the project type and context
-        
-        Generate the complete README.md content:
+
+        ---
+        Begin generating the README.md file now.
         """
         
         # Call Gemini API

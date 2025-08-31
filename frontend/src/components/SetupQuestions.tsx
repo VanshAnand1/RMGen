@@ -36,6 +36,9 @@ const SetupQuestions: React.FC<SetupQuestionsProps> = ({
   const [teamContext, setTeamContext] = useState(
     appState.repositoryMetadata?.detected_team_context || appState.teamContext
   );
+  const [projectName, setProjectName] = useState(appState.repositoryMetadata?.name || '');
+  const [projectDescription, setProjectDescription] = useState(appState.repositoryMetadata?.description || '');
+
 
   const projectTypes = [
     {
@@ -82,6 +85,11 @@ const SetupQuestions: React.FC<SetupQuestionsProps> = ({
     updateAppState({
       projectType,
       teamContext,
+      repositoryMetadata: {
+        ...appState.repositoryMetadata!,
+        name: projectName,
+        description: projectDescription,
+      },
     });
     goToStep("sections");
   };
@@ -96,6 +104,37 @@ const SetupQuestions: React.FC<SetupQuestionsProps> = ({
           Help us understand your project better to generate the most
           appropriate README content.
         </p>
+      </div>
+
+      {/* Project Details */}
+      <div className="card mb-8">
+        <h2 className="section-subtitle mb-6">Confirm your Project Details</h2>
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="projectName" className="block text-sm font-medium text-gray-700 mb-1">
+              Project Name
+            </label>
+            <input
+              type="text"
+              id="projectName"
+              value={projectName}
+              onChange={(e) => setProjectName(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-lg"
+            />
+          </div>
+          <div>
+            <label htmlFor="projectDescription" className="block text-sm font-medium text-gray-700 mb-1">
+              Project Description / Tagline
+            </label>
+            <textarea
+              id="projectDescription"
+              value={projectDescription}
+              onChange={(e) => setProjectDescription(e.target.value)}
+              rows={3}
+              className="w-full p-2 border border-gray-300 rounded-lg"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Project Type Selection */}

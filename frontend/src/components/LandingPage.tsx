@@ -39,20 +39,19 @@ const LandingPage: React.FC<LandingPageProps> = ({
   ) => {
     setInputMethod(method);
     setValidationResult(null);
+  };
 
-    if (method === "skip") {
-      updateAppState({
-        repositoryInput: {
-          method: "skip",
-          repoUrl: "",
-          owner: "",
-          repoName: "",
-        },
-        repositoryMetadata: null,
-      });
-      goToStep("setup");
-      return;
-    }
+  const handleStartFromScratch = () => {
+    updateAppState({
+      repositoryInput: {
+        method: "skip",
+        repoUrl: "",
+        owner: "",
+        repoName: "",
+      },
+      repositoryMetadata: null,
+    });
+    goToStep("setup");
   };
 
   const validateRepository = async () => {
@@ -353,7 +352,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleMethodChange("skip");
+                handleStartFromScratch();
               }}
               className="btn-primary w-full"
             >

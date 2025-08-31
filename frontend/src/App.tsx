@@ -16,7 +16,7 @@ const getInitialStep = (): AppState['currentStep'] => {
   return 'landing';
 };
 
-const initialState: AppState = {
+const getInitialState = (): AppState => ({
   currentStep: getInitialStep(),
   repositoryInput: {
     method: "url",
@@ -33,10 +33,10 @@ const initialState: AppState = {
   isLoading: false,
   error: null,
   github_access_token: null, // Initialize new field
-};
+});
 
 function App() {
-  const [appState, setAppState] = useState<AppState>(initialState);
+  const [appState, setAppState] = useState<AppState>(getInitialState());
 
   const updateAppState = useCallback((updates: Partial<AppState>) => {
     setAppState((prev) => ({ ...prev, ...updates }));
@@ -50,12 +50,13 @@ function App() {
   );
 
   const resetApp = useCallback(() => {
-    setAppState(initialState);
+    window.history.pushState({}, '', '/');
+    setAppState(getInitialState());
   }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <Header currentStep={appState.currentStep} resetApp={resetApp} />
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         {appState.currentStep === "landing" && (
           <LandingPage
