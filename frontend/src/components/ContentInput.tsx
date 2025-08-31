@@ -38,14 +38,6 @@ const ContentInput: React.FC<ContentInputProps> = ({
 
   const availableSections = [
     {
-      id: "project-name",
-      title: "Project Name & Description",
-      description: "The project title and a brief overview of what it does",
-      icon: BookOpen,
-      placeholder: "Enter a compelling project description...",
-      defaultContent: appState.repositoryMetadata?.name || "My Project",
-    },
-    {
       id: "inspiration",
       title: "Inspiration",
       description:

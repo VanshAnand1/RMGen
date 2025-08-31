@@ -32,13 +32,6 @@ const SectionSelection: React.FC<SectionSelectionProps> = ({
 
   const availableSections: ReadmeSection[] = [
     {
-      id: "project-name",
-      title: "Project Name & Description",
-      description: "The project title and a brief overview of what it does",
-      required: true,
-      defaultContent: appState.repositoryMetadata?.name || "My Project",
-    },
-    {
       id: "inspiration",
       title: "Inspiration",
       description:
