@@ -103,6 +103,7 @@ function App() {
 
   const resetApp = useCallback(() => {
     sessionStorage.removeItem("github_access_token");
+    sessionStorage.removeItem("rmgen_app_state"); // Add this line
     window.history.pushState({}, "", "/");
     setAppState(getInitialState());
   }, []);
