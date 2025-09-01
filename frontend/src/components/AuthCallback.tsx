@@ -38,7 +38,9 @@ const AuthCallback: React.FC<AuthCallbackProps> = ({
         .exchangeCodeForToken(code)
         .then((data) => {
           if (data.success && data.access_token) {
+            sessionStorage.setItem('github_access_token', data.access_token);
             updateAppState({ github_access_token: data.access_token });
+            window.history.replaceState({}, document.title, "/");
             goToStep("selectRepo");
           } else {
             setError(data.error || "Failed to get access token.");

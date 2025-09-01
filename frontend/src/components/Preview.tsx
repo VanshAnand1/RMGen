@@ -13,6 +13,8 @@ import {
   FileText,
 } from "lucide-react";
 import MarkdownIt from "markdown-it";
+import 'github-markdown-css/github-markdown.css';
+import PreviewModal from "./PreviewModal";
 
 interface PreviewProps {
   appState: AppState;
@@ -34,6 +36,8 @@ const Preview: React.FC<PreviewProps> = ({
   const [editedContent, setEditedContent] = useState("");
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [promptInput, setPromptInput] = useState(""); // New state for prompt input
 
   const md = new MarkdownIt({
     html: true,
@@ -41,6 +45,33 @@ const Preview: React.FC<PreviewProps> = ({
     typographer: true,
     breaks: true,
   });
+
+  const handleApplyPrompt = async () => {
+    if (!promptInput.trim()) {
+      setError("Prompt cannot be empty.");
+      return;
+    }
+    setIsGenerating(true);
+    setError(null);
+
+    try {
+      // Call API to refine README based on prompt
+      const result = await apiService.refineReadme(editedContent, promptInput);
+
+      if (result.success && result.content) {
+        const content = result.content;
+        updateAppState({ generatedContent: content });
+        setEditedContent(content);
+        setPromptInput(""); // Clear prompt input after successful application
+      } else {
+        setError(result.error || "Failed to refine README content with prompt.");
+      }
+    } catch (err) {
+      setError("An error occurred while refining the README.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const generateReadme = useCallback(async () => {
     setIsGenerating(true);
@@ -121,14 +152,6 @@ const Preview: React.FC<PreviewProps> = ({
     setIsEditing(false);
   };
 
-  const renderMarkdown = (content: string) => {
-    try {
-      return md.render(content);
-    } catch (err) {
-      return content;
-    }
-  };
-
   if (isGenerating) {
     return (
       <div className="max-w-4xl mx-auto text-center animate-fade-in">
@@ -185,29 +208,30 @@ const Preview: React.FC<PreviewProps> = ({
   }
 
   return (
-    <div className="max-w-6xl mx-auto animate-fade-in">
+    <>
       <div className="text-center mb-8">
         <h1 className="section-title text-4xl mb-4">Your README is Ready!</h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          Review, edit, and download your professionally generated README.md
-          file.
+          Review, edit, and download your professionally generated README.md file.
         </p>
       </div>
 
       {/* Action Buttons */}
       <div className="flex flex-wrap justify-center gap-4 mb-8">
         <button
-          onClick={() => setIsEditing(!isEditing)}
-          className={`btn-outline flex items-center space-x-2 ${
-            isEditing ? "bg-primary-50 border-primary-300" : ""
-          }`}
+          onClick={() => setIsEditing(true)}
+          className={`btn-outline flex items-center space-x-2 ${isEditing ? "bg-primary-50 border-primary-300" : ""}`}
         >
-          {isEditing ? (
-            <Eye className="w-4 h-4" />
-          ) : (
-            <Edit3 className="w-4 h-4" />
-          )}
-          <span>{isEditing ? "Preview" : "Edit"}</span>
+          <Edit3 className="w-4 h-4" />
+          <span>Edit Content</span>
+        </button>
+
+        <button
+          onClick={() => setIsPreviewModalOpen(true)}
+          className="btn-outline flex items-center space-x-2"
+        >
+          <Eye className="w-4 h-4" />
+          <span>Show Fullscreen Preview</span>
         </button>
 
         <button
@@ -239,173 +263,121 @@ const Preview: React.FC<PreviewProps> = ({
         </button>
       </div>
 
-      {/* Content Display/Edit */}
-      <div className="grid lg:grid-cols-2 gap-8">
-        {/* Markdown Editor */}
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="section-subtitle flex items-center space-x-2">
-              <FileText className="w-5 h-5" />
-              <span>Markdown Source</span>
-            </h3>
-            {isEditing && (
-              <div className="flex space-x-2">
-                <button
-                  onClick={handleSaveEdits}
-                  className="btn-primary text-sm px-3 py-1"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={handleCancelEdits}
-                  className="btn-outline text-sm px-3 py-1"
-                >
-                  Cancel
-                </button>
+      <div className="max-w-6xl mx-auto animate-fade-in"> {/* Removed flex-col lg:flex-row and gap-8 */}
+        {/* Main Content Area (formerly Left Pane) */}
+        <div className="flex-1"> {/* This div now contains all the main content */}
+          {/* Content Display/Edit */}
+          <div className="card">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="section-subtitle flex items-center space-x-2">
+                <FileText className="w-5 h-5" />
+                <span>Markdown Source</span>
+              </h3>
+              {isEditing && (
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handleSaveEdits}
+                    className="btn-primary text-sm px-3 py-1"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={handleCancelEdits}
+                    className="btn-outline text-sm px-3 py-1"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {isEditing ? (
+              <textarea
+                value={editedContent}
+                onChange={(e) => setEditedContent(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.shiftKey && e.key === "I") {
+                    e.preventDefault();
+                  }
+                }}
+                className="w-full h-96 p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none font-mono text-sm"
+                placeholder="Edit your README content here..."
+              />
+            ) : (
+              <div className="w-full h-96 border border-gray-300 rounded-lg bg-gray-50 overflow-auto">
+                <pre className="font-mono text-sm text-gray-800 whitespace-pre-wrap p-4 w-full h-full box-border">
+                  {editedContent}
+                </pre>
               </div>
             )}
           </div>
 
-          {isEditing ? (
+          {/* Refine with AI */}
+          <div className="card mt-8">
+            <h3 className="section-subtitle mb-4">Refine with AI</h3>
             <textarea
-              value={editedContent}
-              onChange={(e) => setEditedContent(e.target.value)}
-              onKeyDown={(e) => {
-                // Prevent browser shortcuts from interfering with typing
-                if (e.shiftKey && e.key === "I") {
-                  e.preventDefault();
-                }
-              }}
-              className="w-full h-96 p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none font-mono text-sm"
-              placeholder="Edit your README content here..."
-            />
-          ) : (
-            <div className="w-full h-96 p-4 border border-gray-300 rounded-lg bg-gray-50 overflow-auto">
-              <pre className="font-mono text-sm text-gray-800 whitespace-pre-wrap">
-                {editedContent}
-              </pre>
-            </div>
-          )}
+              value={promptInput}
+              onChange={(e) => setPromptInput(e.target.value)}
+              className="w-full h-32 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none text-sm"
+              placeholder="Type your prompt here to refine the README (e.g., 'Make the installation section more concise', 'Add a section about contributing')..."
+            ></textarea>
+            <button onClick={handleApplyPrompt} className="btn-primary w-full mt-3" disabled={isGenerating}>
+              {isGenerating ? "Applying..." : "Apply Prompt"}
+            </button>
+          </div>
 
-          {/* Markdown Tips */}
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-            <h4 className="font-semibold text-blue-800 mb-2">Markdown Tips:</h4>
-            <div className="grid grid-cols-2 gap-2 text-xs text-blue-700">
+          {/* Project Summary */}
+          <div className="card bg-gray-50 border-gray-200 mt-8">
+            <h3 className="section-subtitle text-gray-800">Project Summary</h3>
+            <div className="grid md:grid-cols-3 gap-4 text-sm">
               <div>
-                <code># </code> Header 1
+                <p><strong>Project Type:</strong> {appState.projectType}</p>
+                <p><strong>Team Context:</strong> {appState.teamContext}</p>
+                <p><strong>Total Sections:</strong> {appState.selectedSections.length}</p>
               </div>
               <div>
-                <code>## </code> Header 2
+                <p><strong>Repository:</strong> {appState.repositoryMetadata?.name || "N/A"}</p>
+                <p><strong>Language:</strong> {appState.repositoryMetadata?.language || "N/A"}</p>
+                <p><strong>License:</strong> {appState.repositoryMetadata?.license || "N/A"}</p>
               </div>
               <div>
-                <code>**text**</code> Bold
-              </div>
-              <div>
-                <code>*text*</code> Italic
-              </div>
-              <div>
-                <code>`code`</code> Inline code
-              </div>
-              <div>
-                <code>- item</code> List item
+                <p><strong>Content Length:</strong> {editedContent.length} characters</p>
+                <p><strong>Estimated Lines:</strong> {editedContent.split("\n").length}</p>
+                <p><strong>Generated:</strong> {new Date().toLocaleString()}</p>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Live Preview */}
-        <div className="card">
-          <h3 className="section-subtitle flex items-center space-x-2 mb-4">
-            <Eye className="w-5 h-5" />
-            <span>Live Preview</span>
-          </h3>
+          {/* Navigation */}
+          <div className="flex justify-between items-center mt-8">
+            <button
+              onClick={() => goToStep("content")}
+              className="btn-outline flex items-center space-x-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Content</span>
+            </button>
 
-          <div className="w-full h-96 p-4 border border-gray-300 rounded-lg overflow-auto bg-white">
-            <div
-              className="prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{
-                __html: renderMarkdown(editedContent),
-              }}
-            />
-          </div>
-
-          <div className="mt-4 text-xs text-gray-500 text-center">
-            This is how your README will appear on GitHub
-          </div>
-        </div>
-      </div>
-
-      {/* Project Summary */}
-      <div className="card bg-gray-50 border-gray-200 mt-8">
-        <h3 className="section-subtitle text-gray-800">Project Summary</h3>
-        <div className="grid md:grid-cols-3 gap-4 text-sm">
-          <div>
-            <p>
-              <strong>Project Type:</strong> {appState.projectType}
-            </p>
-            <p>
-              <strong>Team Context:</strong> {appState.teamContext}
-            </p>
-            <p>
-              <strong>Total Sections:</strong>{" "}
-              {appState.selectedSections.length}
-            </p>
-          </div>
-          <div>
-            <p>
-              <strong>Repository:</strong>{" "}
-              {appState.repositoryMetadata?.name || "N/A"}
-            </p>
-            <p>
-              <strong>Language:</strong>{" "}
-              {appState.repositoryMetadata?.language || "N/A"}
-            </p>
-            <p>
-              <strong>License:</strong>{" "}
-              {appState.repositoryMetadata?.license || "N/A"}
-            </p>
-          </div>
-          <div>
-            <p>
-              <strong>Content Length:</strong> {editedContent.length} characters
-            </p>
-            <p>
-              <strong>Estimated Lines:</strong>{" "}
-              {editedContent.split("\n").length}
-            </p>
-            <p>
-              <strong>Generated:</strong> {new Date().toLocaleString()}
-            </p>
+            <div className="flex space-x-4">
+              <button onClick={resetApp} className="btn-outline">Start Over</button>
+              <button
+                onClick={handleDownload}
+                className="btn-primary flex items-center space-x-2"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download README.md</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Navigation */}
-      <div className="flex justify-between items-center mt-8">
-        <button
-          onClick={() => goToStep("content")}
-          className="btn-outline flex items-center space-x-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Content</span>
-        </button>
-
-        <div className="flex space-x-4">
-          <button onClick={resetApp} className="btn-outline">
-            Start Over
-          </button>
-
-          <button
-            onClick={handleDownload}
-            className="btn-primary flex items-center space-x-2"
-          >
-            <Download className="w-4 h-4" />
-            <span>Download README.md</span>
-          </button>
-        </div>
-      </div>
-    </div>
+      <PreviewModal 
+        isOpen={isPreviewModalOpen}
+        onClose={() => setIsPreviewModalOpen(false)}
+        content={editedContent}
+      />
+    </>
   );
-};
+}
 
 export default Preview;

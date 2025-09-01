@@ -68,3 +68,9 @@
     animation: bounce 2s infinite;
   }
 }
+
+.markdown-body {
+  color-scheme: light !important;
+  background-color: #fff !important;
+  color: #24292e !important;
+}

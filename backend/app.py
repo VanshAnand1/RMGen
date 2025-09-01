@@ -368,6 +368,52 @@ def get_user_repos():
         app.logger.error(f"An unexpected error occurred in get_user_repos: {e}", exc_info=True)
         return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
 
+@app.route('/api/refine-readme', methods=['POST'])
+def refine_readme():
+    """Refine README content using Gemini AI based on user prompt"""
+    try:
+        data = request.get_json()
+        current_content = data.get('current_content', '')
+        prompt = data.get('prompt', '')
+
+        if not current_content or not prompt:
+            return jsonify({'success': False, 'error': 'Missing current_content or prompt'}), 400
+
+        refine_instruction = f"""
+        You are an expert technical writer. Your task is to refine the provided README content based on the user's specific instructions.
+
+        **CRITICAL INSTRUCTIONS:**
+        1.  You MUST ONLY modify the existing README content. Do NOT generate new sections unless explicitly asked by the user's prompt.
+        2.  Ensure the output is a complete, valid Markdown document.
+        3.  Address the user's prompt precisely. If the prompt is vague, make a reasonable interpretation.
+
+        ---
+        **Current README Content:**
+        {current_content}
+
+        ---
+        **User's Refinement Prompt:**
+        {prompt}
+
+        ---
+        Begin the refined README.md content now.
+        """
+
+        response = client.models.generate_content(
+            model='gemini-1.5-flash',
+            contents=refine_instruction
+        )
+        refined_content = response.text
+
+        return jsonify({
+            'success': True,
+            'content': refined_content
+        })
+
+    except Exception as e:
+        app.logger.error(f"Error refining README: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""

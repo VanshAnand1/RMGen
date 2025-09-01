@@ -100,6 +100,18 @@ class ApiService {
   async healthCheck(): Promise<ApiResponse<any>> {
     return this.request<any>("/health");
   }
+
+  async refineReadme(currentContent: string, prompt: string): Promise<ApiResponse<string>> {
+    const payload = {
+      current_content: currentContent,
+      prompt: prompt,
+    };
+
+    return this.request<string>("/refine-readme", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
 }
 
 export const apiService = new ApiService();
