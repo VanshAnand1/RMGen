@@ -8,7 +8,6 @@ from google import genai
 from dotenv import load_dotenv
 import json
 import re
-import traceback
 
 # Load environment variables
 load_dotenv()

@@ -5,7 +5,6 @@ import {
   ArrowRight,
   Copy,
   Check,
-  BookOpen,
   Info,
   Code,
   Users,
@@ -123,14 +122,17 @@ const ContentInput: React.FC<ContentInputProps> = ({
     },
   ];
 
-  const selectedSections = useMemo(() => 
-    availableSections.filter((section) =>
-      appState.selectedSections.includes(section.id)
-    ), [appState.selectedSections]
+  const selectedSections = useMemo(
+    () =>
+      availableSections.filter((section) =>
+        appState.selectedSections.includes(section.id)
+      ),
+    [appState.selectedSections]
   );
 
-  const currentSection = useMemo(() => 
-    selectedSections[currentSectionIndex], [selectedSections, currentSectionIndex]
+  const currentSection = useMemo(
+    () => selectedSections[currentSectionIndex],
+    [selectedSections, currentSectionIndex]
   );
 
   useEffect(() => {
@@ -152,24 +154,8 @@ const ContentInput: React.FC<ContentInputProps> = ({
 
   const handleUseExistingReadme = () => {
     if (appState.repositoryMetadata?.existing_readme) {
-      // Try to extract relevant content from existing README
-      const existingContent = appState.repositoryMetadata.existing_readme;
-
-      // Simple heuristic to find relevant content
-      if (
-        currentSection.id === "project-name" &&
-        existingContent.includes("# ")
-      ) {
-        const titleMatch = existingContent.match(/# (.+)/);
-        if (titleMatch) {
-          handleContentChange(titleMatch[1]);
-        }
-      }
-
-      // For other sections, offer the full content
-      if (currentSection.id !== "project-name") {
-        handleContentChange(existingContent);
-      }
+      // Populate the textarea with the full content of the existing README
+      handleContentChange(appState.repositoryMetadata.existing_readme);
     }
   };
 
@@ -197,13 +183,14 @@ const ContentInput: React.FC<ContentInputProps> = ({
     }
   };
 
-  const canContinue = useMemo(() =>
-    currentSection && sectionContent[currentSection.id]?.trim().length > 0,
+  const canContinue = useMemo(
+    () =>
+      currentSection && sectionContent[currentSection.id]?.trim().length > 0,
     [currentSection, sectionContent]
   );
 
-  const progressPercentage = useMemo(() =>
-    ((currentSectionIndex + 1) / selectedSections.length) * 100,
+  const progressPercentage = useMemo(
+    () => ((currentSectionIndex + 1) / selectedSections.length) * 100,
     [currentSectionIndex, selectedSections.length]
   );
 

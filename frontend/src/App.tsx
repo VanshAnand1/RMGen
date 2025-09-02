@@ -9,21 +9,6 @@ import Header from "./components/Header";
 import AuthCallback from "./components/AuthCallback"; // New import
 import SelectRepo from "./components/SelectRepo"; // New import
 
-const getInitialStep = (): AppState["currentStep"] => {
-  const token = sessionStorage.getItem("github_access_token");
-  const path = window.location.pathname;
-
-  if (path === "/auth/callback") {
-    return "authCallback";
-  }
-
-  if (token) {
-    return "selectRepo";
-  }
-
-  return "landing";
-};
-
 const getInitialState = (): AppState => {
   const storedState = sessionStorage.getItem("rmgen_app_state");
   const token = sessionStorage.getItem("github_access_token");

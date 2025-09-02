@@ -18,7 +18,9 @@ import {
 interface SectionSelectionProps {
   appState: AppState;
   updateAppState: (updates: Partial<AppState>) => void;
-  goToStep: (step: 'landing' | 'setup' | 'sections' | 'content' | 'preview') => void;
+  goToStep: (
+    step: "landing" | "setup" | "sections" | "content" | "preview"
+  ) => void;
 }
 
 const SectionSelection: React.FC<SectionSelectionProps> = ({
@@ -129,7 +131,6 @@ const SectionSelection: React.FC<SectionSelectionProps> = ({
 
   const getSectionIcon = (sectionId: string) => {
     const iconMap: { [key: string]: any } = {
-      "project-name": BookOpen,
       inspiration: Heart,
       journey: Map,
       installation: Download,
