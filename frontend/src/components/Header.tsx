@@ -1,18 +1,22 @@
-import React, { useState } from "react";
-import { BookOpen, Github } from "lucide-react";
-import { AppState } from "../types";
-import ConfirmationModal from "./ConfirmationModal";
+import React, { useState } from 'react';
+import { BookOpen, Github } from 'lucide-react';
+import HowToUseModal from './HowToUseModal';
+import ConfirmationModal from './ConfirmationModal';
 
 interface HeaderProps {
-  currentStep: AppState['currentStep'];
+  user: any | null;
+  onLogin: () => void;
   resetApp: () => void;
+  currentStep: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ currentStep, resetApp }) => {
+const Header: React.FC<HeaderProps> = ({ user, onLogin, resetApp, currentStep }) => {
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showHowToUse, setShowHowToUse] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleLogoClick = () => {
-    const progressSteps: AppState['currentStep'][] = ['setup', 'sections', 'content', 'preview', 'selectRepo'];
+    const progressSteps = ['setup', 'sections', 'content', 'preview', 'selectRepo'];
     if (progressSteps.includes(currentStep)) {
       setIsModalOpen(true);
     } else {
@@ -44,20 +48,37 @@ const Header: React.FC<HeaderProps> = ({ currentStep, resetApp }) => {
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
-              >
-                <Github className="w-5 h-5" />
-                <span className="hidden sm:inline">GitHub</span>
-              </a>
-            </div>
+            <nav className="flex items-center space-x-4">
+              <button onClick={() => setShowHowToUse(true)} className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
+                How to Use
+              </button>
+              {user ? (
+                <div className="relative">
+                  <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center focus:outline-none">
+                    <img src={user.avatar_url} alt="User Avatar" className="w-8 h-8 rounded-full" />
+                  </button>
+                  {showDropdown && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                      <a href={user.html_url} target="_blank" rel="noopener noreferrer" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        Your Profile
+                      </a>
+                      <button onClick={resetApp} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        Logout & Start Over
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button onClick={onLogin} className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200">
+                  <Github className="w-5 h-5" />
+                  <span>Sign in with GitHub</span>
+                </button>
+              )}
+            </nav>
           </div>
         </div>
       </header>
+      {showHowToUse && <HowToUseModal onClose={() => setShowHowToUse(false)} />}
       <ConfirmationModal
         isOpen={isModalOpen}
         onConfirm={handleConfirm}

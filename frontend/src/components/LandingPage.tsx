@@ -153,6 +153,9 @@ const LandingPage: React.FC<LandingPageProps> = ({
           repositories using our guided workflow and AI-powered content
           generation.
         </p>
+        <p className="text-sm text-gray-500 mt-4 max-w-2xl mx-auto">
+          Note: We do not support fetching private repository data yet. For private repos, please start from scratch.
+        </p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-8 mb-8">

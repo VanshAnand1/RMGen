@@ -6,8 +6,9 @@ import SectionSelection from "./components/SectionSelection";
 import ContentInput from "./components/ContentInput";
 import Preview from "./components/Preview";
 import Header from "./components/Header";
-import AuthCallback from "./components/AuthCallback"; // New import
-import SelectRepo from "./components/SelectRepo"; // New import
+import AuthCallback from "./components/AuthCallback";
+import SelectRepo from "./components/SelectRepo";
+import { apiService } from "./services/api";
 
 const getInitialState = (): AppState => {
   const storedState = sessionStorage.getItem("rmgen_app_state");
@@ -61,6 +62,7 @@ const getInitialState = (): AppState => {
 
 function App() {
   const [appState, setAppState] = useState<AppState>(getInitialState());
+  const [user, setUser] = useState<any | null>(null);
 
   useEffect(() => {
     sessionStorage.setItem("rmgen_app_state", JSON.stringify(appState));
@@ -69,6 +71,59 @@ function App() {
   const updateAppState = useCallback((updates: Partial<AppState>) => {
     setAppState((prev) => ({ ...prev, ...updates }));
   }, []);
+
+  const resetApp = useCallback(() => {
+    sessionStorage.removeItem("github_access_token");
+    sessionStorage.removeItem("rmgen_app_state");
+    setUser(null);
+    window.history.pushState({}, "", "/");
+    setAppState(getInitialState());
+  }, []);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (appState.github_access_token) {
+        try {
+          const response = await fetch("https://api.github.com/user", {
+            headers: {
+              Authorization: `Bearer ${appState.github_access_token}`,
+            },
+          });
+          if (response.ok) {
+            const userData = await response.json();
+            setUser(userData);
+          } else {
+            resetApp();
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          resetApp();
+        }
+      }
+    };
+    fetchUser();
+  }, [appState.github_access_token, resetApp]);
+
+  const handleGitHubLogin = async () => {
+    updateAppState({ isLoading: true, error: null });
+    try {
+      const result = await apiService.getGitHubOAuthUrl();
+      if (result.oauth_url) {
+        window.location.href = result.oauth_url;
+      } else {
+        updateAppState({
+          isLoading: false,
+          error: "GitHub OAuth not configured",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to get GitHub OAuth URL", error);
+      updateAppState({
+        isLoading: false,
+        error: "Failed to connect to GitHub. Please try again.",
+      });
+    }
+  };
 
   const goToStep = useCallback(
     (
@@ -86,16 +141,9 @@ function App() {
     [updateAppState]
   );
 
-  const resetApp = useCallback(() => {
-    sessionStorage.removeItem("github_access_token");
-    sessionStorage.removeItem("rmgen_app_state"); // Add this line
-    window.history.pushState({}, "", "/");
-    setAppState(getInitialState());
-  }, []);
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header currentStep={appState.currentStep} resetApp={resetApp} />
+            <Header user={user} resetApp={resetApp} onLogin={handleGitHubLogin} currentStep={appState.currentStep} />
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         {appState.currentStep === "landing" && (
           <LandingPage
