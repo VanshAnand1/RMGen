@@ -1,6 +1,6 @@
 # RMGen: Your README.md Generator
 
-**Note:** The GitHub usage of this project does not reflect my typical workflow; it's currently messy as the focus was not on optimizing GitHub practices for this project. The intentions were to experiment with using AI Agents to build and ship a fullstack application. 
+**Note:** The GitHub usage of this project does not reflect my typical workflow; it's currently messy as the focus was not on optimizing GitHub practices for this project. The focus was to experiment with using AI Agents to build and ship a fullstack application. 
 
 ## Inspiration
 
