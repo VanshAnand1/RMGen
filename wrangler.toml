@@ -1,5 +1,0 @@
-name = "rmgen-frontend"
-compatibility_date = "2025-09-03"
-
-[site]
-bucket = "frontend/build"

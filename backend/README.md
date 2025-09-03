@@ -1,55 +1,58 @@
 # RMGen Backend
 
-Python Flask backend for the RMGen smart README generator application.
+This directory contains the Python Flask backend for the RMGen application. It serves as the engine that connects to the GitHub API, fetches repository data, and uses the Google Gemini API to intelligently generate README.md files.
 
-## Setup
+## Core Functions
 
-1. **Install Python dependencies:**
+- **GitHub Integration**: Validates public repositories, fetches metadata, and analyzes content to auto-detect project details.
+- **GitHub OAuth**: Allows users to securely connect their GitHub account to access and select from their private and public repositories.
+- **AI-Powered Generation**: Takes project context, user-selected sections, and custom input to generate well-structured README files.
+- **Refinement**: Allows users to refine and edit the generated content with further prompts.
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+## Getting Started
 
-2. **Configure environment variables:**
+The included `setup.sh` script in the root directory can be used to set up the entire project, including the backend. For a manual setup, follow these steps:
 
-   ```bash
-   cp env.example .env
-   # Edit .env with your actual API keys and configuration
-   ```
+1.  **Create a Virtual Environment:**
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
 
-3. **Required API Keys:**
+2.  **Install Dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-   - **Gemini API Key**: Get from [Google AI Studio](https://makersuite.google.com/app/apikey)
-   - **GitHub Token**: Optional, for higher API rate limits
-   - **GitHub OAuth**: For "Connect GitHub" functionality
+3.  **Configure Environment Variables:**
+    Create a `.env` file by copying the `env.example`.
+    ```bash
+    cp env.example .env
+    ```
+    Then, fill in the required API keys and secrets in the `.env` file.
 
-4. **Run the application:**
-   ```bash
-   python app.py
-   ```
+4.  **Run the Server:**
+    ```bash
+    python app.py
+    ```
+    The backend will be running at `http://localhost:5001`.
 
 ## API Endpoints
 
-- `POST /api/validate-repo` - Validate GitHub repository and fetch metadata
-- `POST /api/generate-readme` - Generate README content using Gemini AI
-- `GET /api/github-oauth-url` - Get GitHub OAuth URL
-- `GET /api/github-repos` - Get user's repositories (requires OAuth)
-- `GET /api/health` - Health check
+-   `POST /api/validate-repo`: Validates a GitHub repository URL and fetches its metadata.
+-   `POST /api/generate-readme`: Generates a new README based on user selections and project context.
+-   `POST /api/refine-readme`: Refines existing README content based on a user's prompt.
+-   `GET /api/github-oauth-url`: Provides the URL to initiate the GitHub OAuth flow.
+-   `POST /api/github-callback`: Handles the callback from GitHub to exchange a code for an access token.
+-   `GET /api/github-repos`: Fetches the authenticated user's repositories.
+-   `GET /api/health`: A simple health check endpoint.
 
 ## Environment Variables
 
-- `GEMINI_API_KEY`: Your Google Gemini API key
-- `GITHUB_TOKEN`: GitHub personal access token (optional)
-- `GITHUB_CLIENT_ID`: GitHub OAuth app client ID
-- `GITHUB_CLIENT_SECRET`: GitHub OAuth app client secret
-- `GITHUB_REDIRECT_URI`: OAuth callback URL
-- `PORT`: Flask server port (default: 5000)
-
-## Development
-
-The backend handles:
-
-- GitHub repository validation and metadata fetching
-- AI-powered README generation via Gemini
-- OAuth authentication flow
-- Repository content analysis and project type detection
+-   `GEMINI_API_KEY`: Your Google Gemini API key.
+-   `GITHUB_TOKEN`: A GitHub personal access token (optional, for higher API rate limits).
+-   `GITHUB_CLIENT_ID`: The Client ID of your GitHub OAuth App.
+-   `GITHUB_CLIENT_SECRET`: The Client Secret of your GitHub OAuth App.
+-   `GITHUB_REDIRECT_URI`: The OAuth callback/redirect URI.
+-   `FRONTEND_ORIGINS`: A comma-separated list of allowed frontend origins for CORS (e.g., `http://localhost:3000`).
+-   `PORT`: The port for the Flask server (defaults to `5001`).
