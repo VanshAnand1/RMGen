@@ -332,7 +332,6 @@ def github_callback():
 def get_github_oauth_url():
     """Get GitHub OAuth URL for user authentication"""
     client_id = os.getenv('GITHUB_CLIENT_ID')
-    app.logger.info(f"Retrieved GITHUB_CLIENT_ID: '{client_id}'") # Add this line
     if not client_id:
         app.logger.error("GitHub OAuth not configured: GITHUB_CLIENT_ID is missing.")
         return jsonify({'error': 'GitHub OAuth not configured'})
