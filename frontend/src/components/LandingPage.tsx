@@ -25,14 +25,20 @@ const LandingPage: React.FC<LandingPageProps> = ({
   const [inputMethod, setInputMethod] = useState<
     "url" | "owner-repo" | "oauth" | "skip"
   >("url");
-  const [repoUrl, setRepoUrl] = useState("");
-  const [owner, setOwner] = useState("");
-  const [repoName, setRepoName] = useState("");
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<{
     valid: boolean;
     message: string;
   } | null>(null);
+
+  const handleInputChange = (field: "repoUrl" | "owner" | "repoName", value: string) => {
+    updateAppState({
+      repositoryInput: {
+        ...appState.repositoryInput,
+        [field]: value,
+      },
+    });
+  };
 
   const handleMethodChange = (
     method: "url" | "owner-repo" | "oauth" | "skip"
@@ -57,12 +63,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
   const validateRepository = async () => {
     if (inputMethod === "skip") return;
 
-    let inputData = {
-      method: inputMethod,
-      repoUrl: "",
-      owner: "",
-      repoName: "",
-    };
+    const { repoUrl, owner, repoName } = appState.repositoryInput;
 
     if (inputMethod === "url") {
       if (!repoUrl.trim()) {
@@ -72,7 +73,6 @@ const LandingPage: React.FC<LandingPageProps> = ({
         });
         return;
       }
-      inputData.repoUrl = repoUrl.trim();
     } else if (inputMethod === "owner-repo") {
       if (!owner.trim() || !repoName.trim()) {
         setValidationResult({
@@ -81,15 +81,13 @@ const LandingPage: React.FC<LandingPageProps> = ({
         });
         return;
       }
-      inputData.owner = owner.trim();
-      inputData.repoName = repoName.trim();
     }
 
     setIsValidating(true);
     setValidationResult(null);
 
     try {
-      const result = await apiService.validateRepository(inputData);
+      const result = await apiService.validateRepository(appState.repositoryInput);
 
       if (result.valid && result.metadata) {
         setValidationResult({
@@ -97,13 +95,10 @@ const LandingPage: React.FC<LandingPageProps> = ({
           message: "Repository validated successfully!",
         });
 
-        // Update app state with repository metadata
         updateAppState({
-          repositoryInput: inputData,
           repositoryMetadata: result.metadata,
         });
 
-        // Auto-advance to next step after a brief delay
         setTimeout(() => {
           goToStep("setup");
         }, 1500);
@@ -191,8 +186,8 @@ const LandingPage: React.FC<LandingPageProps> = ({
               <input
                 type="url"
                 placeholder="https://github.com/username/repository"
-                value={repoUrl}
-                onChange={(e) => setRepoUrl(e.target.value)}
+                value={appState.repositoryInput.repoUrl}
+                onChange={(e) => handleInputChange("repoUrl", e.target.value)}
                 className="input-field"
                 onClick={(e) => e.stopPropagation()}
               />
@@ -249,16 +244,16 @@ const LandingPage: React.FC<LandingPageProps> = ({
               <input
                 type="text"
                 placeholder="Username"
-                value={owner}
-                onChange={(e) => setOwner(e.target.value)}
+                value={appState.repositoryInput.owner}
+                onChange={(e) => handleInputChange("owner", e.target.value)}
                 className="input-field"
                 onClick={(e) => e.stopPropagation()}
               />
               <input
                 type="text"
                 placeholder="Repository name"
-                value={repoName}
-                onChange={(e) => setRepoName(e.target.value)}
+                value={appState.repositoryInput.repoName}
+                onChange={(e) => handleInputChange("repoName", e.target.value)}
                 className="input-field"
                 onClick={(e) => e.stopPropagation()}
               />

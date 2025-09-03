@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { AppState, SectionContent } from "../types";
+import { AppState } from "../types";
 import {
   ArrowLeft,
   ArrowRight,
@@ -30,9 +30,6 @@ const ContentInput: React.FC<ContentInputProps> = ({
   goToStep,
 }) => {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
-  const [sectionContent, setSectionContent] = useState<SectionContent>(
-    appState.sectionContent
-  );
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
 
   const availableSections = useMemo(
@@ -138,22 +135,22 @@ const ContentInput: React.FC<ContentInputProps> = ({
     [selectedSections, currentSectionIndex]
   );
 
-  useEffect(() => {
-    // Initialize content for current section if not exists
-    if (currentSection && !sectionContent[currentSection.id]) {
-      setSectionContent((prev) => ({
-        ...prev,
-        [currentSection.id]: currentSection.defaultContent || "",
-      }));
-    }
-  }, [currentSection, sectionContent]);
-
   const handleContentChange = (content: string) => {
-    setSectionContent((prev) => ({
-      ...prev,
-      [currentSection.id]: content,
-    }));
+    updateAppState({
+      sectionContent: {
+        ...appState.sectionContent,
+        [currentSection.id]: content,
+      },
+    });
   };
+
+  useEffect(() => {
+    // Initialize content for current section if it doesn't exist
+    if (currentSection && appState.sectionContent[currentSection.id] === undefined) {
+      handleContentChange(currentSection.defaultContent || "");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSection, appState.sectionContent]);
 
   const handleUseExistingReadme = () => {
     if (appState.repositoryMetadata?.existing_readme) {
@@ -172,8 +169,6 @@ const ContentInput: React.FC<ContentInputProps> = ({
     if (currentSectionIndex < selectedSections.length - 1) {
       setCurrentSectionIndex(currentSectionIndex + 1);
     } else {
-      // Save content and move to preview
-      updateAppState({ sectionContent });
       goToStep("preview");
     }
   };
@@ -188,8 +183,9 @@ const ContentInput: React.FC<ContentInputProps> = ({
 
   const canContinue = useMemo(
     () =>
-      currentSection && sectionContent[currentSection.id]?.trim().length > 0,
-    [currentSection, sectionContent]
+      currentSection &&
+      appState.sectionContent[currentSection.id]?.trim().length > 0,
+    [currentSection, appState.sectionContent]
   );
 
   const progressPercentage = useMemo(
@@ -257,7 +253,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
         </div>
 
         <textarea
-          value={sectionContent[currentSection?.id || ""] || ""}
+          value={appState.sectionContent[currentSection?.id || ""] || ""}
           onChange={(e) => handleContentChange(e.target.value)}
           onKeyDown={(e) => {
             // Prevent browser shortcuts from interfering with typing
@@ -272,12 +268,12 @@ const ContentInput: React.FC<ContentInputProps> = ({
         {/* Content Actions */}
         <div className="flex items-center justify-between mt-4">
           <div className="text-sm text-gray-500">
-            {sectionContent[currentSection?.id || ""]?.length || 0} characters
+            {appState.sectionContent[currentSection?.id || ""]?.length || 0} characters
           </div>
 
           <button
             onClick={() =>
-              handleCopyContent(sectionContent[currentSection?.id || ""] || "")
+              handleCopyContent(appState.sectionContent[currentSection?.id || ""] || "")
             }
             className="btn-outline flex items-center space-x-2 text-sm"
           >
