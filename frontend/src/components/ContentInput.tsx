@@ -35,99 +35,102 @@ const ContentInput: React.FC<ContentInputProps> = ({
   );
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
 
-  const availableSections = [
-    {
-      id: "inspiration",
-      title: "Inspiration",
-      description:
-        "What inspired you to create this project and the problem it solves",
-      icon: Heart,
-      placeholder: "Share what inspired you to build this project...",
-      defaultContent: "",
-    },
-    {
-      id: "journey",
-      title: "Development Journey",
-      description:
-        "The story behind building this project and what you learned",
-      icon: Map,
-      placeholder: "Describe your development journey and key learnings...",
-      defaultContent: "",
-    },
-    {
-      id: "installation",
-      title: "Installation Instructions",
-      description:
-        "Step-by-step guide on how to install and set up the project",
-      icon: Download,
-      placeholder: "Provide clear installation steps...",
-      defaultContent: "",
-    },
-    {
-      id: "usage",
-      title: "Usage Instructions",
-      description: "How to use the project with examples and code snippets",
-      icon: Code,
-      placeholder: "Explain how to use your project with examples...",
-      defaultContent: "",
-    },
-    {
-      id: "tech-stack",
-      title: "Tech Stack",
-      description: "Technologies, frameworks, and tools used in the project",
-      icon: Info,
-      placeholder: "List the technologies and tools used...",
-      defaultContent:
-        appState.repositoryMetadata?.language || "Various technologies",
-    },
-    {
-      id: "contributing",
-      title: "Contributing Guidelines",
-      description: "How others can contribute to the project",
-      icon: Users,
-      placeholder: "Explain how others can contribute...",
-      defaultContent: "",
-    },
-    {
-      id: "license",
-      title: "License Information",
-      description: "Project license and usage terms",
-      icon: FileText,
-      placeholder: "Specify the license and usage terms...",
-      defaultContent: appState.repositoryMetadata?.license || "MIT",
-    },
-    {
-      id: "credits",
-      title: "Credits & Acknowledgments",
-      description: "Thank contributors and acknowledge inspirations",
-      icon: Users,
-      placeholder: "Acknowledge contributors and inspirations...",
-      defaultContent: "",
-    },
-    {
-      id: "troubleshooting",
-      title: "Troubleshooting & FAQ",
-      description: "Common issues and frequently asked questions",
-      icon: HelpCircle,
-      placeholder: "List common issues and their solutions...",
-      defaultContent: "",
-    },
-    {
-      id: "roadmap",
-      title: "Future Features & Roadmap",
-      description: "Planned features and development roadmap",
-      icon: Map,
-      placeholder: "Outline your future plans and roadmap...",
-      defaultContent: "",
-    },
-  ];
+  const availableSections = useMemo(
+    () => [
+      {
+        id: "inspiration",
+        title: "Inspiration",
+        description:
+          "What inspired you to create this project and the problem it solves",
+        icon: Heart,
+        placeholder: "Share what inspired you to build this project...",
+        defaultContent: "",
+      },
+      {
+        id: "journey",
+        title: "Development Journey",
+        description:
+          "The story behind building this project and what you learned",
+        icon: Map,
+        placeholder: "Describe your development journey and key learnings...",
+        defaultContent: "",
+      },
+      {
+        id: "installation",
+        title: "Installation Instructions",
+        description:
+          "Step-by-step guide on how to install and set up the project",
+        icon: Download,
+        placeholder: "Provide clear installation steps...",
+        defaultContent: "",
+      },
+      {
+        id: "usage",
+        title: "Usage Instructions",
+        description: "How to use the project with examples and code snippets",
+        icon: Code,
+        placeholder: "Explain how to use your project with examples...",
+        defaultContent: "",
+      },
+      {
+        id: "tech-stack",
+        title: "Tech Stack",
+        description: "Technologies, frameworks, and tools used in the project",
+        icon: Info,
+        placeholder: "List the technologies and tools used...",
+        defaultContent:
+          appState.repositoryMetadata?.language || "Various technologies",
+      },
+      {
+        id: "contributing",
+        title: "Contributing Guidelines",
+        description: "How others can contribute to the project",
+        icon: Users,
+        placeholder: "Explain how others can contribute...",
+        defaultContent: "",
+      },
+      {
+        id: "license",
+        title: "License Information",
+        description: "Project license and usage terms",
+        icon: FileText,
+        placeholder: "Specify the license and usage terms...",
+        defaultContent: appState.repositoryMetadata?.license || "MIT",
+      },
+      {
+        id: "credits",
+        title: "Credits & Acknowledgments",
+        description: "Thank contributors and acknowledge inspirations",
+        icon: Users,
+        placeholder: "Acknowledge contributors and inspirations...",
+        defaultContent: "",
+      },
+      {
+        id: "troubleshooting",
+        title: "Troubleshooting & FAQ",
+        description: "Common issues and frequently asked questions",
+        icon: HelpCircle,
+        placeholder: "List common issues and their solutions...",
+        defaultContent: "",
+      },
+      {
+        id: "roadmap",
+        title: "Future Features & Roadmap",
+        description: "Planned features and development roadmap",
+        icon: Map,
+        placeholder: "Outline your future plans and roadmap...",
+        defaultContent: "",
+      },
+    ],
+    [appState.repositoryMetadata]
+  );
 
   const selectedSections = useMemo(
     () =>
       availableSections.filter((section) =>
         appState.selectedSections.includes(section.id)
       ),
-    [appState.selectedSections]
+    [appState.selectedSections, availableSections]
   );
 
   const currentSection = useMemo(
@@ -143,7 +146,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
         [currentSection.id]: currentSection.defaultContent || "",
       }));
     }
-  }, [currentSection]); // Removed sectionContent from dependencies to prevent infinite loop
+  }, [currentSection, sectionContent]);
 
   const handleContentChange = (content: string) => {
     setSectionContent((prev) => ({

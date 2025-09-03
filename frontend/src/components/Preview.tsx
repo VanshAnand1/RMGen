@@ -12,7 +12,6 @@ import {
   Eye,
   FileText,
 } from "lucide-react";
-import MarkdownIt from "markdown-it";
 import 'github-markdown-css/github-markdown.css';
 import PreviewModal from "./PreviewModal";
 
@@ -38,13 +37,6 @@ const Preview: React.FC<PreviewProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [promptInput, setPromptInput] = useState(""); // New state for prompt input
-
-  const md = new MarkdownIt({
-    html: true,
-    linkify: true,
-    typographer: true,
-    breaks: true,
-  });
 
   const handleApplyPrompt = async () => {
     if (!promptInput.trim()) {
