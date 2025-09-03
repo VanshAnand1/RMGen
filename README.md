@@ -1,5 +1,7 @@
 # RMGen: Your README.md Generator
 
+**Note:** The GitHub usage of this project does not reflect my typical workflow; it's currently messy as the focus was not on optimizing GitHub practices for this project. The intentions were to experiment with using AI Agents to build and ship a fullstack application. 
+
 ## Inspiration
 
 Developing and publishing software projects demands significant time and effort.  The process of manually creating comprehensive README.md files, while crucial for project clarity and accessibility, can be a tedious and repetitive task.  This project originated from the need to streamline this workflow, automating the creation of high-quality README files to reduce development overhead and improve developer productivity. Existing template solutions often require substantial manual customization, highlighting the need for a more automated and efficient solution.
@@ -37,6 +39,8 @@ Future development will focus on:
 
 1.  Directly pushing the generated README.md to the GitHub repository.
 2.  Adding support for private repositories via GitHub authentication.
+3.  History for generated README files to go back to versions.
+4.  History for 
 
 
 ## Troubleshooting
