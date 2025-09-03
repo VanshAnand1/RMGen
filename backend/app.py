@@ -1,4 +1,5 @@
 import logging
+import sys
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_limiter import Limiter
@@ -16,6 +17,16 @@ load_dotenv()
 
 app = Flask(__name__)
 
+# Configure logging
+# Log to a file for local debugging
+log_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend_debug.log')
+logging.basicConfig(filename=log_file_path, level=logging.DEBUG,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+# Also log to stdout for platforms like Render
+app.logger.addHandler(logging.StreamHandler(sys.stdout))
+app.logger.setLevel(logging.INFO)
+
+
 # Set up rate limiting
 limiter = Limiter(
     get_remote_address,
@@ -26,18 +37,17 @@ limiter = Limiter(
 
 # Set up CORS
 frontend_origins = os.getenv("FRONTEND_ORIGINS")
+app.logger.info(f"CORS Check: FRONTEND_ORIGINS environment variable is set to: '{frontend_origins}'")
+
 if frontend_origins:
-    origins = frontend_origins.split(',')
+    origins = [origin.strip() for origin in frontend_origins.split(',')]
 else:
     # Default to allowing localhost for development if not set
     origins = ["http://localhost:3000", "http://localhost:5001"]
 
-CORS(app, resources={r"/api/*": {"origins": origins}})
+app.logger.info(f"CORS Check: Flask-CORS is configured with the following origins: {origins}")
 
-# Configure logging to a file
-log_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend_debug.log')
-logging.basicConfig(filename=log_file_path, level=logging.DEBUG,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+CORS(app, resources={r"/api/*": {"origins": origins}})
 
 # Configure Gemini AI
 genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
