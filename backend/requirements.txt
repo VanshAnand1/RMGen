@@ -9,3 +9,4 @@ pytest==8.2.2
 pytest-mock==3.14.0
 mistune==3.0.2
 python-multipart==0.0.6
+Flask-Limiter==3.5.1

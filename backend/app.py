@@ -1,6 +1,8 @@
 import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import os
 import requests
 from github import Github
@@ -13,7 +15,24 @@ import re
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+
+# Set up rate limiting
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["500 per day", "200 per hour"],
+    storage_uri="memory://",
+)
+
+# Set up CORS
+frontend_origins = os.getenv("FRONTEND_ORIGINS")
+if frontend_origins:
+    origins = frontend_origins.split(',')
+else:
+    # Default to allowing localhost for development if not set
+    origins = ["http://localhost:3000", "http://localhost:5001"]
+
+CORS(app, resources={r"/api/*": {"origins": origins}})
 
 # Configure logging to a file
 log_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend_debug.log')
@@ -144,6 +163,7 @@ def detect_project_type(metadata):
         return 'Generic Project' # Also use the neutral default in case of errors
 
 @app.route('/api/validate-repo', methods=['POST'])
+@limiter.limit("100 per hour")
 def validate_repository():
     """Validate GitHub repository URL or owner/repo combination"""
     try:
@@ -185,6 +205,7 @@ def validate_repository():
         return jsonify({'valid': False, 'error': str(e)})
 
 @app.route('/api/generate-readme', methods=['POST'])
+@limiter.limit("60 per hour")
 def generate_readme():
     """Generate README content using Gemini AI"""
     try:
@@ -368,6 +389,7 @@ def get_user_repos():
         return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
 
 @app.route('/api/refine-readme', methods=['POST'])
+@limiter.limit("60 per hour")
 def refine_readme():
     """Refine README content using Gemini AI based on user prompt"""
     try:
