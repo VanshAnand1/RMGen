@@ -4,7 +4,7 @@ from flask_cors import CORS
 import os
 import requests
 from github import Github
-from google import genai
+import google.generativeai as genai
 from dotenv import load_dotenv
 import json
 import re
@@ -21,7 +21,8 @@ logging.basicConfig(filename=log_file_path, level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Configure Gemini AI
-client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
+genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 # GitHub API configuration
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
@@ -239,9 +240,8 @@ def generate_readme():
         """
         
         # Call Gemini API
-        response = client.models.generate_content(
-            model='gemini-1.5-flash',
-            contents=prompt
+        response = model.generate_content(
+            prompt
         )
         generated_content = response.text
         
@@ -398,9 +398,8 @@ def refine_readme():
         Begin the refined README.md content now.
         """
 
-        response = client.models.generate_content(
-            model='gemini-1.5-flash',
-            contents=refine_instruction
+        response = model.generate_content(
+            refine_instruction
         )
         refined_content = response.text
 
